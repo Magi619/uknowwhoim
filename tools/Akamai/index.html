@@ -121,6 +121,147 @@ a:hover {
   color: #94a3b8;
   font-weight: bold;
 }
+
+/* Footer and patch-notes history */
+.app-footer {
+  margin: 22px 0 6px;
+  padding: 16px 10px;
+  border-top: 1px solid #334155;
+  color: #94a3b8;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.app-footer .footer-credit {
+  color: #e2e8f0;
+  font-weight: bold;
+}
+
+.footer-meta {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.footer-separator {
+  color: #475569;
+}
+
+.patch-notes-trigger {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #38bdf8;
+  font: inherit;
+  font-weight: bold;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.patch-notes-trigger:hover {
+  background: transparent;
+  color: #7dd3fc;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(2, 6, 23, 0.78);
+}
+
+.modal-backdrop[hidden] {
+  display: none;
+}
+
+.patch-modal {
+  width: min(100%, 620px);
+  max-height: min(80vh, 720px);
+  overflow-y: auto;
+  padding: 24px;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  background: #111827;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.45);
+}
+
+.patch-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.patch-modal h2 {
+  margin: 0;
+  color: #38bdf8;
+  font-size: 22px;
+}
+
+.patch-modal-intro {
+  margin: 8px 0 20px;
+  color: #94a3b8;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.modal-close {
+  flex: 0 0 auto;
+  padding: 6px 10px;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.patch-entry {
+  margin-top: 14px;
+  padding: 16px;
+  border: 1px solid #334155;
+  border-left: 3px solid #38bdf8;
+  border-radius: 9px;
+  background: #0f172a;
+}
+
+.patch-entry h3 {
+  margin: 0 0 4px;
+  color: #e2e8f0;
+  font-size: 16px;
+}
+
+.patch-date {
+  margin-bottom: 12px;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.patch-entry ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #cbd5e1;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+body.modal-open {
+  overflow: hidden;
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 12px;
+  }
+
+  .patch-modal {
+    padding: 18px;
+  }
+}
 </style>
 </head>
 <body>
@@ -155,6 +296,70 @@ a:hover {
       <tbody id="tableBody"></tbody>
     </table>
   </div>
+
+  <footer class="app-footer">
+    <div class="footer-credit">Created by Mahendran</div>
+    <div class="footer-meta">
+      <button type="button" class="patch-notes-trigger" id="openInfo" aria-haspopup="dialog" aria-controls="infoModal">Info</button>
+      <span class="footer-separator" aria-hidden="true">|</span>
+      <span>Version 1.0</span>
+      <span class="footer-separator" aria-hidden="true">|</span>
+      <button type="button" class="patch-notes-trigger" id="openPatchNotes" aria-haspopup="dialog" aria-controls="patchNotesModal">Patch Notes</button>
+    </div>
+  </footer>
+</div>
+
+<div class="modal-backdrop" id="infoModal" hidden>
+  <section class="patch-modal" role="dialog" aria-modal="true" aria-labelledby="infoTitle" aria-describedby="infoIntro" tabindex="-1">
+    <div class="patch-modal-header">
+      <h2 id="infoTitle">How to Use This Tool</h2>
+      <button type="button" class="modal-close" id="closeInfo" aria-label="Close information">×</button>
+    </div>
+    <p class="patch-modal-intro" id="infoIntro">Akamai Image Cache Clear Link Generator helps you create image URLs for product SKUs by market, so you can open or copy the links for cache clearing.</p>
+
+    <article class="patch-entry">
+      <h3>Getting Started</h3>
+      <ul>
+        <li><strong>Select a market:</strong> Choose UK, US, or APAC to use the appropriate image URL patterns.</li>
+        <li><strong>Enter SKUs:</strong> Type product codes into the “SKU Input” cells, or paste multiple SKUs from a spreadsheet into the first cell.</li>
+        <li><strong>Browse Folder:</strong> Select a folder containing image files to fill the input rows with their filenames, without file extensions.</li>
+        <li><strong>Generate Links:</strong> Create all image URLs for the selected market. Use the links to open images in a new tab.</li>
+        <li><strong>Copy All:</strong> Copy generated URLs for every non-empty SKU to the clipboard.</li>
+        <li><strong>Clear:</strong> Remove entered SKUs and generated links from the table.</li>
+        <li><strong>Open Akamai:</strong> Open the Akamai Control Center in a new tab.</li>
+      </ul>
+    </article>
+
+    <article class="patch-entry">
+      <h3>Useful Notes</h3>
+      <ul>
+        <li>For each SKU, the tool generates the image URLs associated with the selected market.</li>
+        <li>APAC includes Australia and New Zealand URLs, including the News24 Wine primary and alternate image links.</li>
+        <li>This page generates URLs only; it does not sign in to Akamai or clear caches automatically.</li>
+      </ul>
+    </article>
+  </section>
+</div>
+
+<div class="modal-backdrop" id="patchNotesModal" hidden>
+  <section class="patch-modal" role="dialog" aria-modal="true" aria-labelledby="patchNotesTitle" aria-describedby="patchNotesIntro" tabindex="-1">
+    <div class="patch-modal-header">
+      <h2 id="patchNotesTitle">Patch Notes &amp; History</h2>
+      <button type="button" class="modal-close" id="closePatchNotes" aria-label="Close patch notes">×</button>
+    </div>
+    <p class="patch-modal-intro" id="patchNotesIntro">Release history for the Akamai Image Cache Clear Link Generator.</p>
+
+    <article class="patch-entry">
+      <h3>Version 1.0 — Initial Release</h3>
+      <div class="patch-date">28 October 2026</div>
+      <ul>
+        <li>Added News24 Wine Australia primary and alternate (<code>b.png</code>) image links to the APAC market list.</li>
+        <li>Added the “Created by Mahendran” footer and version number.</li>
+        <li>Added this clickable patch-notes history panel.</li>
+        <li>Retained existing UK, US, and APAC link generation, bulk paste, folder browse, copy, clear, and Akamai launch features.</li>
+      </ul>
+    </article>
+  </section>
 </div>
 
 <script>
@@ -165,9 +370,10 @@ function addRow(value = '') {
   const row = document.createElement('tr');
   row.innerHTML = `
     <td class="row-number">${rowCount}</td>
-    <td contenteditable="true" class="input-cell">${value}</td>
+    <td contenteditable="true" class="input-cell"></td>
     <td class="link-cell"></td>
   `;
+  row.children[1].textContent = value;
   tableBody.appendChild(row);
 }
 
@@ -190,7 +396,7 @@ document.getElementById('folderPicker').addEventListener('change', function(e) {
 
   files.forEach((file, index) => {
     const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
-    tableBody.children[index].children[1].innerText = nameWithoutExt;
+    tableBody.children[index].children[1].textContent = nameWithoutExt;
   });
 });
 
@@ -216,7 +422,7 @@ document.addEventListener('paste', function(e) {
   }
 
   values.forEach((value, i) => {
-    tableBody.children[startIndex + i].children[1].innerText = value;
+    tableBody.children[startIndex + i].children[1].textContent = value;
   });
 });
 
@@ -252,7 +458,9 @@ function getLinks(sku, market) {
       `https://redemption.virginwines.com.au/images/au/en/product/${sku}.png`,
       `https://redemption.virginwines.com.au/images/au/en/product/${sku}b.png`,
       `https://www.laithwaites.co.nz/images/nz/en/product/${sku}.png`,
-      `https://www.laithwaites.co.nz/images/nz/en/product/${sku}b.png`
+      `https://www.laithwaites.co.nz/images/nz/en/product/${sku}b.png`,
+      `https://www.news24wine.com.au/images/au/en/product/${sku}.png`,
+      `https://www.news24wine.com.au/images/au/en/product/${sku}b.png`
     ];
   }
 
@@ -273,17 +481,25 @@ function generateLinks() {
     }
 
     const links = getLinks(sku, market);
+    outputCell.replaceChildren();
 
-    outputCell.innerHTML = links
-      .map(link => `<div><a href="${link}" target="_blank">${link}</a></div>`)
-      .join('');
+    links.forEach(link => {
+      const wrapper = document.createElement('div');
+      const anchor = document.createElement('a');
+      anchor.href = link;
+      anchor.target = '_blank';
+      anchor.rel = 'noopener noreferrer';
+      anchor.textContent = link;
+      wrapper.appendChild(anchor);
+      outputCell.appendChild(wrapper);
+    });
   });
 }
 
-function copyAllLinks() {
+async function copyAllLinks() {
   const rows = document.querySelectorAll('#tableBody tr');
   const market = getSelectedMarket();
-  let allLinks = [];
+  const allLinks = [];
 
   rows.forEach(row => {
     const sku = row.children[1].innerText.trim();
@@ -291,25 +507,77 @@ function copyAllLinks() {
     allLinks.push(...getLinks(sku, market));
   });
 
-  navigator.clipboard.writeText(allLinks.join('\n'));
-  alert('All links copied!');
+  try {
+    await navigator.clipboard.writeText(allLinks.join('\n'));
+    alert('All links copied!');
+  } catch (error) {
+    alert('Could not access the clipboard. Please allow clipboard permission or use the page over HTTPS.');
+  }
 }
 
 function clearSheet() {
   const rows = document.querySelectorAll('#tableBody tr');
 
   rows.forEach(row => {
-    row.children[1].innerText = '';
-    row.children[2].innerHTML = '';
+    row.children[1].textContent = '';
+    row.children[2].replaceChildren();
   });
 }
 
 function openAkamai() {
   window.open(
     'https://control.akamai.com/apps/home-page/#/home',
-    '_blank'
+    '_blank',
+    'noopener,noreferrer'
   );
 }
+
+// Info and patch-notes modal interactions
+const infoModal = document.getElementById('infoModal');
+const openInfoButton = document.getElementById('openInfo');
+const closeInfoButton = document.getElementById('closeInfo');
+const patchNotesModal = document.getElementById('patchNotesModal');
+const openPatchNotesButton = document.getElementById('openPatchNotes');
+const closePatchNotesButton = document.getElementById('closePatchNotes');
+let previouslyFocusedElement = null;
+let activeModal = null;
+
+function openModal(modal) {
+  previouslyFocusedElement = document.activeElement;
+  activeModal = modal;
+  modal.hidden = false;
+  document.body.classList.add('modal-open');
+  modal.querySelector('.patch-modal').focus();
+}
+
+function closeModal(modal) {
+  modal.hidden = true;
+  activeModal = null;
+  document.body.classList.remove('modal-open');
+
+  if (previouslyFocusedElement && typeof previouslyFocusedElement.focus === 'function') {
+    previouslyFocusedElement.focus();
+  }
+}
+
+openInfoButton.addEventListener('click', () => openModal(infoModal));
+closeInfoButton.addEventListener('click', () => closeModal(infoModal));
+openPatchNotesButton.addEventListener('click', () => openModal(patchNotesModal));
+closePatchNotesButton.addEventListener('click', () => closeModal(patchNotesModal));
+
+[infoModal, patchNotesModal].forEach(modal => {
+  modal.addEventListener('click', function(event) {
+    if (event.target === modal) {
+      closeModal(modal);
+    }
+  });
+});
+
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Escape' && activeModal) {
+    closeModal(activeModal);
+  }
+});
 </script>
 </body>
 </html>
