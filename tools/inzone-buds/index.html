@@ -71,6 +71,13 @@ button:focus-visible{outline:2px solid #dcbaff;outline-offset:3px}
 .html-tools-hub-link .hub-arrow{font-size:17px;line-height:1}
 @media(max-width:600px){.html-tools-hub-link{left:10px;bottom:10px;min-height:40px;padding:9px 12px;font-size:12px}}
 </style>
+<style id="mk-source-version-switch">
+.mk-source-version{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:5px;margin:5px auto 18px;padding:0 10px;color:#9aa3b2;font:600 10px/1.35 Inter,"Segoe UI",Arial,sans-serif}
+.mk-source-version-label{margin-right:3px;color:#9aa3b2;font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.mk-source-version a,.mk-source-version a:visited{display:inline-flex;align-items:center;justify-content:center;min-height:23px;padding:4px 10px;border:1px solid #dfe4eb;border-radius:999px;background:rgba(255,255,255,.9);color:#667085!important;text-decoration:none!important;font:700 10px/1 Inter,"Segoe UI",Arial,sans-serif}
+.mk-source-version a:hover{background:#f1f4f8;color:#253247!important}
+.mk-source-version a.is-active{background:#263244;border-color:#263244;color:#fff!important}
+</style>
 </head><body>
 <a class="html-tools-hub-link" href="../../index.html" title="Back to My HTML Tools" aria-label="Back to My HTML Tools"><span class="hub-arrow" aria-hidden="true">←</span><span>My HTML Tools</span></a>
 <main>
@@ -254,6 +261,8 @@ body.mh-meta-modal-open{overflow:hidden}
 <footer class="mh-meta-footer"><div class="mh-meta-credit">Created by Mahendran</div><div class="mh-meta-links">
 <button type="button" class="mh-meta-action" id="mhOpenInfo" aria-haspopup="dialog" aria-controls="mhInfoModal">Info</button><span class="mh-meta-sep" aria-hidden="true">|</span><span>Version 1.0</span><span class="mh-meta-sep" aria-hidden="true">|</span><button type="button" class="mh-meta-action" id="mhOpenPatch" aria-haspopup="dialog" aria-controls="mhPatchModal">Patch Notes</button>
 </div></footer>
+<nav class="mk-source-version" aria-label="Choose version"><span class="mk-source-version-label">Version</span><a href="index.html" class="is-active" aria-current="page">Legacy</a><a href="https://magi619.github.io/PTTG/tools/inzone-buds/index.html">Enhanced ↗</a></nav>
+
 <div class="mh-meta-backdrop" id="mhInfoModal" hidden><section class="mh-meta-dialog" role="dialog" aria-modal="true" aria-labelledby="mhInfoTitle" aria-describedby="mhInfoIntro" tabindex="-1">
 <div class="mh-meta-dialog-header"><h2 id="mhInfoTitle">INZONE Buds Battery Monitor — How to Use</h2><button type="button" class="mh-meta-close" data-mh-close aria-label="Close information">×</button></div><p class="mh-meta-intro" id="mhInfoIntro">Connect the Sony INZONE Buds USB dongle and view the reported battery levels for the left earbud, right earbud and charging case.</p><article class="mh-meta-section"><h3>Connect your device</h3><ul><li>Connect the INZONE Buds USB dongle to your computer.</li><li>Select Connect and choose the detected device when the browser asks for permission.</li></ul></article><article class="mh-meta-section"><h3>Read battery levels</h3><ul><li>Check the Left, Right and Case battery indicators on the page.</li><li>Select Refresh to request updated readings while connected.</li><li>Select Disconnect when you have finished monitoring the device.</li></ul></article></section></div>
 <div class="mh-meta-backdrop" id="mhPatchModal" hidden><section class="mh-meta-dialog" role="dialog" aria-modal="true" aria-labelledby="mhPatchTitle" aria-describedby="mhPatchIntro" tabindex="-1">
