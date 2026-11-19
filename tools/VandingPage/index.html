@@ -115,8 +115,61 @@
       font-weight:700; z-index:9999;
     }
   </style>
+
+<style id="html-tools-hub-navigation">
+  .html-tools-hub-link,
+  .html-tools-hub-link:visited {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 2147483000;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 10px 15px;
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 999px;
+    background: rgba(15,23,42,.94);
+    color: #fff !important;
+    font: 650 13px/1.2 Inter, "Segoe UI", Arial, sans-serif;
+    letter-spacing: .1px;
+    text-decoration: none !important;
+    box-shadow: 0 6px 22px rgba(0,0,0,.24);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+  }
+  .html-tools-hub-link:hover {
+    transform: translateY(-2px);
+    background: #2563eb;
+    color: #fff !important;
+    box-shadow: 0 9px 26px rgba(37,99,235,.32);
+  }
+  .html-tools-hub-link:focus-visible {
+    outline: 3px solid #60a5fa;
+    outline-offset: 3px;
+  }
+  .html-tools-hub-link .hub-arrow {
+    font-size: 17px;
+    line-height: 1;
+  }
+  @media (max-width: 600px) {
+    .html-tools-hub-link {
+      left: 10px;
+      bottom: 10px;
+      min-height: 40px;
+      padding: 9px 12px;
+      font-size: 12px;
+    }
+  }
+</style>
+
 </head>
 <body class="light">
+<a class="html-tools-hub-link" href="../../index.html" title="Back to My HTML Tools" aria-label="Back to My HTML Tools"><span class="hub-arrow" aria-hidden="true">←</span><span>My HTML Tools</span></a>
+
 
   <!-- Left inputs -->
   <div class="inputs" id="inputsPanel">
