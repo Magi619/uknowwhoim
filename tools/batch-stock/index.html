@@ -258,6 +258,18 @@
       .vintage-controls-top, .vintage-manual { align-items:flex-start; }
       .vintage-help { flex-basis:100%; }
     }
+
+/* Legacy / Enhanced version selector */
+.version-switcher-shell{position:sticky;top:0;z-index:100000;display:flex;justify-content:flex-end;align-items:center;margin:0 0 12px;padding:4px 0;pointer-events:none}
+.version-switcher{display:inline-flex;align-items:center;gap:4px;padding:4px 5px;background:rgba(15,23,42,.94);border:1px solid rgba(148,163,184,.28);border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);pointer-events:auto}
+.version-label{font:700 10px/1 Arial,sans-serif;letter-spacing:.12em;color:#94a3b8;margin-right:5px;padding-left:7px}
+.version-choice{display:inline-flex;align-items:center;gap:7px;min-height:32px;padding:7px 13px;border-radius:999px;color:#cbd5e1!important;text-decoration:none!important;font:650 12px/1 Inter,Arial,sans-serif;border:1px solid transparent;transition:background .18s ease,color .18s ease;white-space:nowrap}
+.version-choice:hover{background:rgba(255,255,255,.1);color:#fff!important}
+.version-choice.is-active{background:#CF004F;color:#fff!important;box-shadow:0 4px 12px rgba(207,0,79,.25)}
+.version-choice:focus-visible{outline:3px solid #93c5fd;outline-offset:2px}
+.version-current{font-size:9px;opacity:.82;text-transform:uppercase;letter-spacing:.06em}
+@media(max-width:600px){.version-switcher-shell{justify-content:center;margin-bottom:8px}.version-label{display:none}.version-choice{padding:7px 12px}}
+
 </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
@@ -313,6 +325,14 @@
 
 </head>
 <body>
+<div class="version-switcher-shell">
+  <nav class="version-switcher" aria-label="Choose Batch Stock Lookup version">
+    <span class="version-label">VERSION</span>
+    <a class="version-choice" href="legacy.html" aria-label="Switch to Legacy version">Legacy</a>
+    <a class="version-choice is-active" href="index.html" aria-current="page">Enhanced <span class="version-current">Current</span></a>
+  </nav>
+</div>
+
 <a class="html-tools-hub-link" href="../../index.html" title="Back to My HTML Tools" aria-label="Back to My HTML Tools"><span class="hub-arrow" aria-hidden="true">←</span><span>My HTML Tools</span></a>
 
   
