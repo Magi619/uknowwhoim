@@ -589,12 +589,15 @@
     document.querySelector("#happyTable tbody").innerHTML="";
     document.querySelector("#vintageTable tbody").innerHTML="";
 
+    // Clear previous vintage checks before running the default stock check.
+    window.resultsData = {valid:[], invalid:[], vintage:[], happy:[]};
+
     await fetchAll();
   }
 
   function normalizeVintageSuffix(value) {
     const raw = String(value ?? "").trim();
-    if (!/^(?:\d{2}|\d{4})$/.test(raw)) return null;
+    if (!/^(?:\d{1,2}|\d{4})$/.test(raw)) return null;
 
     if (raw.length === 4) {
       const year = Number(raw);
@@ -711,6 +714,10 @@
   window.resultsData=window.resultsData||{valid:[],invalid:[],vintage:[],happy:[]};
   updateLineCount();
   renderVintageButtons();
+  const manualVintageInput = document.getElementById("manualVintageInput");
+  if (manualVintageInput) manualVintageInput.addEventListener("keydown", event => {
+    if (event.key === "Enter") checkManualVintage();
+  });
   </script>
   <script>
  const themeSwitch = document.getElementById("themeSwitch");
@@ -767,7 +774,7 @@ body.mh-meta-modal-open{overflow:hidden}
   <div class="mh-meta-links">
     <button type="button" class="mh-meta-action" id="mhOpenInfo" aria-haspopup="dialog" aria-controls="mhInfoModal">Info</button>
     <span class="mh-meta-sep" aria-hidden="true">|</span>
-    <span>Version 1.0</span>
+    <span>Version 1.1</span>
     <span class="mh-meta-sep" aria-hidden="true">|</span>
     <button type="button" class="mh-meta-action" id="mhOpenPatch" aria-haspopup="dialog" aria-controls="mhPatchModal">Patch Notes</button>
   </div>
@@ -775,14 +782,23 @@ body.mh-meta-modal-open{overflow:hidden}
 <div class="mh-meta-backdrop" id="mhInfoModal" hidden>
   <section class="mh-meta-dialog" role="dialog" aria-modal="true" aria-labelledby="mhInfoTitle" aria-describedby="mhInfoIntro" tabindex="-1">
     <div class="mh-meta-dialog-header"><h2 id="mhInfoTitle">Batch Stock Lookup — How to Use</h2><button type="button" class="mh-meta-close" data-mh-close aria-label="Close information">×</button></div>
-    <p class="mh-meta-intro" id="mhInfoIntro">Check multiple product codes in one run, review stock quantities and vintage changes, and export the results.</p>
-    <article class="mh-meta-section"><h3>Run a stock check</h3><ul><li>Paste product codes into the input box, one code per line.</li><li>Choose the required stock threshold or keep the default setting.</li><li>Select Fetch Stock Info to process the pasted product codes.</li></ul></article><article class="mh-meta-section"><h3>Review and export</h3><ul><li>Review the Valid Stock Quantity, Vintage Changed, Invalid / Remarks and other result sections.</li><li>Use the vintage filter options to review the relevant vintage results.</li><li>Use Clear Cache when you need to remove cached lookup data, and Export to Excel to save the results.</li></ul></article>
+    <p class="mh-meta-intro" id="mhInfoIntro">Check multiple product codes in one run, review stock quantities and vintage changes, and export the results. Vintage controls cover the current year, the previous five years and the next five years, with manual vintage entry also available.</p>
+    <article class="mh-meta-section"><h3>Run a stock check</h3><ul><li>Paste product codes into the input box, one code per line.</li><li>Choose the required stock threshold or keep the default setting.</li><li>Select Fetch Stock Info to process the pasted product codes.</li></ul></article><article class="mh-meta-section"><h3>Review and export</h3><ul><li>Review the Valid Stock Quantity, Vintage Changed, Invalid / Remarks and other result sections.</li><li>Use the automatically generated vintage buttons to check the current year, the previous five years and the next five years. The range updates automatically each calendar year.</li><li>To check another vintage, enter a four-digit year (for example 2026) or a two-digit vintage (for example 26) in Manual Vintage, then select Check Vintage. You can also press Enter.</li><li>Use Default Vintage to restore the original product-code list and run the standard stock check again.</li><li>Use Clear Cache when you need to remove cached lookup data, and Export to Excel to save the results.</li></ul></article>
   </section>
 </div>
 <div class="mh-meta-backdrop" id="mhPatchModal" hidden>
   <section class="mh-meta-dialog" role="dialog" aria-modal="true" aria-labelledby="mhPatchTitle" aria-describedby="mhPatchIntro" tabindex="-1">
     <div class="mh-meta-dialog-header"><h2 id="mhPatchTitle">Patch Notes &amp; History</h2><button type="button" class="mh-meta-close" data-mh-close aria-label="Close patch notes">×</button></div>
     <p class="mh-meta-intro" id="mhPatchIntro">Version history and interface updates for Batch Stock Lookup — How to Use.</p>
+    <article class="mh-meta-section">
+      <h3>Version 1.1 — Dynamic Vintage Checks</h3>
+      <div class="mh-meta-date">19 November 2026</div>
+      <ul>
+        <li>Replaced the fixed Vintage 21–25 buttons with a rolling range covering five previous years through five future years.</li>
+        <li>Added manual vintage entry, accepting a four-digit year or a two-digit vintage suffix.</li>
+        <li>Added Default Vintage to restore the original product-code list and rerun the default stock check.</li>
+      </ul>
+    </article>
     <article class="mh-meta-section">
       <h3>Version 1.0 — Tool information panel</h3>
       <div class="mh-meta-date">19 November 2026</div>
