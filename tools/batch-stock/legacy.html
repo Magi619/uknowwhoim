@@ -1,0 +1,771 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Batch Stock Lookup — Legacy</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <style>
+    :root {
+      /* Default = Dark Mode */
+      --bg: #1e1f23;
+      --panel: #2b2d31;
+      --text: #e0e0e0;
+      --muted: #a0a0a0;
+      --accent: #CF004F;
+      --accent-hover: #095a9c;
+      --table-bg: #2a2b2f;
+      --border: #3c3c42;
+    }
+
+    body.light-mode {
+      --bg: #f5f5f5;
+      --panel: #fff;
+      --text: #222;
+      --muted: #555;
+      --accent: #CF004F;
+      --accent-hover: #095a9c;
+      --table-bg: #fff;
+      --border: #ddd;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    h1, h2 { color: var(--text); }
+    p { color: var(--muted); }
+
+    textarea {
+      width: 25%;
+      height: 150px;
+      margin-bottom: 5px;
+      padding: 10px;
+      font-size: 14px;
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      transition: background 0.3s, color 0.3s, border 0.3s;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .controls button { margin-right: 10px; }
+    .line-count { font-size: 18px; color: var(--muted); margin-right: auto; }
+
+    button {
+      padding: 8px 12px;
+      margin: 5px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover { background: var(--accent-hover); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: var(--table-bg);
+      color: var(--text);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    th, td {
+      border: 1px solid var(--border);
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background: var(--accent);
+      color: white;
+    }
+
+    .invalid {
+      background-color: #FFCCCB;
+      color: #000000;
+      font-weight: bold;
+    }
+
+    .valid-green {
+      background-color: #C1E1C1;
+      color: #000000;
+      font-weight: bold;
+    }
+
+    /* Loading overlay */
+    #loadingOverlay {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(0,0,0,0.9);
+      padding: 15px;
+      border-radius: 10px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      z-index: 9999;
+      color: #fff;
+      font-size: 14px;
+      pointer-events: none;
+    }
+    .progress-container {
+      width: 260px;
+      background: #444;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+    .progress-bar {
+      height: 20px;
+      width: 0%;
+      background: #4caf50;
+      text-align: center;
+      color: #fff;
+      font-weight: bold;
+      transition: width 0.2s ease;
+      font-size: 12px;
+      pointer-events: auto;
+    }
+
+    .signature {
+      margin-top: 50px;
+      font-size: 14px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    #loadingOverlay > * { pointer-events: auto; }
+
+    /* Toggle + input */
+    .toggle-container { margin-top: 10px; display: flex; align-items: center; gap: 10px; }
+    #stockThresholdInput {
+      display: none;
+      width: 80px;
+      padding: 5px;
+      font-size: 14px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+    }
+	 /* Theme toggle switch */
+    .theme-toggle {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .theme-toggle input {
+      width: 40px;
+      height: 20px;
+      appearance: none;
+      background: var(--border);
+      border-radius: 20px;
+      position: relative;
+      cursor: pointer;
+      outline: none;
+      transition: background 0.3s;
+    }
+    .theme-toggle input:checked {
+      background: var(--accent);
+    }
+    .theme-toggle input::before {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.3s;
+    }
+    .theme-toggle input:checked::before {
+      transform: translateX(20px);
+    }
+.info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.close-info {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--muted);
+}
+.close-info:hover {
+  color: var(--accent);
+}
+
+.input-row {
+  display: flex;
+  gap: 20px; /* space between textarea and info box */
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.input-left {
+  flex: 1; /* textarea takes available space */
+}
+
+.info-box {
+  flex: 1; /* info box takes equal width (can adjust) */
+  padding: 15px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+  background: var(--panel);
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+
+
+  
+/* Legacy / Enhanced version selector */
+.version-switcher-shell{position:sticky;top:0;z-index:100000;display:flex;justify-content:flex-end;align-items:center;margin:0 0 12px;padding:4px 0;pointer-events:none}
+.version-switcher{display:inline-flex;align-items:center;gap:4px;padding:4px 5px;background:rgba(15,23,42,.94);border:1px solid rgba(148,163,184,.28);border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.2);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);pointer-events:auto}
+.version-label{font:700 10px/1 Arial,sans-serif;letter-spacing:.12em;color:#94a3b8;margin-right:5px;padding-left:7px}
+.version-choice{display:inline-flex;align-items:center;gap:7px;min-height:32px;padding:7px 13px;border-radius:999px;color:#cbd5e1!important;text-decoration:none!important;font:650 12px/1 Inter,Arial,sans-serif;border:1px solid transparent;transition:background .18s ease,color .18s ease;white-space:nowrap}
+.version-choice:hover{background:rgba(255,255,255,.1);color:#fff!important}
+.version-choice.is-active{background:#CF004F;color:#fff!important;box-shadow:0 4px 12px rgba(207,0,79,.25)}
+.version-choice:focus-visible{outline:3px solid #93c5fd;outline-offset:2px}
+.version-current{font-size:9px;opacity:.82;text-transform:uppercase;letter-spacing:.06em}
+@media(max-width:600px){.version-switcher-shell{justify-content:center;margin-bottom:8px}.version-label{display:none}.version-choice{padding:7px 12px}}
+
+</style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style id="html-tools-hub-navigation">
+  .html-tools-hub-link,
+  .html-tools-hub-link:visited {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 2147483000;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 10px 15px;
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 999px;
+    background: rgba(15,23,42,.94);
+    color: #fff !important;
+    font: 650 13px/1.2 Inter, "Segoe UI", Arial, sans-serif;
+    letter-spacing: .1px;
+    text-decoration: none !important;
+    box-shadow: 0 6px 22px rgba(0,0,0,.24);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
+  }
+  .html-tools-hub-link:hover {
+    transform: translateY(-2px);
+    background: #2563eb;
+    color: #fff !important;
+    box-shadow: 0 9px 26px rgba(37,99,235,.32);
+  }
+  .html-tools-hub-link:focus-visible {
+    outline: 3px solid #60a5fa;
+    outline-offset: 3px;
+  }
+  .html-tools-hub-link .hub-arrow {
+    font-size: 17px;
+    line-height: 1;
+  }
+  @media (max-width: 600px) {
+    .html-tools-hub-link {
+      left: 10px;
+      bottom: 10px;
+      min-height: 40px;
+      padding: 9px 12px;
+      font-size: 12px;
+    }
+  }
+</style>
+
+</head>
+<body>
+<div class="version-switcher-shell">
+  <nav class="version-switcher" aria-label="Choose Batch Stock Lookup version">
+    <span class="version-label">VERSION</span>
+    <a class="version-choice is-active" href="legacy.html" aria-current="page">Legacy</a>
+    <a class="version-choice" href="index.html" aria-label="Switch to Enhanced version">Enhanced</a>
+  </nav>
+</div>
+
+<a class="html-tools-hub-link" href="../../index.html" title="Back to My HTML Tools" aria-label="Back to My HTML Tools"><span class="hub-arrow" aria-hidden="true">←</span><span>My HTML Tools</span></a>
+
+  
+
+   <div style="display:flex;align-items:center;gap:10px;">
+    <h1>Batch Stock Lookup</h1>
+    <div class="theme-toggle">
+      🌙<input type="checkbox" id="themeSwitch">☀️
+    </div>
+  </div>
+
+
+  
+  <div class="input-row">
+  <!-- Left side: textarea -->
+  <div class="input-left">
+   
+    <textarea id="productList" placeholder="Enter product codes..."></textarea>
+	 <p>Paste product codes (one per line):</p>
+  </div>
+  
+  
+  
+  
+  
+  
+  
+  
+    <!-- Right side: info box -->
+  <div class="info-box">
+    <h2>About this Tool</h2>
+    <p>
+      This Batch Stock Lookup tool is built to simplify large-scale product checks.  
+      Paste multiple product codes at once, and the system will automatically fetch 
+      real-time stock details, validate their availability, and flag invalid or outdated codes.  
+    </p>
+    <p>
+      Results are organized into clear categories — <strong>Valid Stock</strong>, 
+      <strong>Invalid/Remarks</strong>, <strong>Vintage Changes</strong>, 
+      and <strong>Happy to Wait</strong>.  
+    </p>
+    <p>
+      In short: faster lookups, fewer errors, and more confidence in your stock data.
+    </p>
+	<p>
+    <b style="color:red;">If the result shows an error/NA for an item, please double-check it with GV.</b>
+    </p>
+	<p>
+      version 2.0
+    </p>
+  </div>
+</div>
+  
+  <div class="controls">
+    <button onclick="clearInput()">Clear</button>
+    <button onclick="clearCache()">Clear Cache</button>
+    <span class="line-count">Lines: <span id="lineCount">0</span></span>
+  </div>
+  <button onclick="fetchAll()">Fetch Stock Info</button>
+  <button onclick="exportToExcel()">Export to Excel</button>
+  
+
+
+
+  <!-- Toggle for stock minimum -->
+  <div class="toggle-container">
+    <label>
+      <input type="checkbox" id="toggleThreshold" onchange="toggleThresholdInput()"> Enable custom Valid stock minimum
+    </label>
+    <input type="number" id="stockThresholdInput" min="1" value="13">
+  </div>
+
+  <!-- Invalid -->
+  <h2>Invalid / Remarks Stock</h2>
+  <div>
+    <button onclick="restoreDefault()">Default</button>
+    <button onclick="fixInvalidWithDigit(21)">Vintage 21</button>
+    <button onclick="fixInvalidWithDigit(22)">Vintage 22</button>
+    <button onclick="fixInvalidWithDigit(23)">Vintage 23</button>
+    <button onclick="fixInvalidWithDigit(24)">Vintage 24</button>
+    <button onclick="fixInvalidWithDigit(25)">Vintage 25</button>
+  </div>
+  <table id="invalidTable">
+    <thead>
+      <tr>
+        <th>No.</th>
+        <th>Product Code</th>
+        <th>Product Name</th>
+        <th>Status</th>
+        <th>Stock Value</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Happy to Wait -->
+  <h2>Happy to Wait</h2>
+  <table id="happyTable">
+    <thead>
+      <tr>
+        <th>No.</th>
+        <th>Old Code</th>
+        <th>New Code</th>
+        <th>Product Name</th>
+        <th>Status</th>
+        <th>Stock Value</th>
+        <th>Happy To Wait Date</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Vintage Changed -->
+  <h2>Vintage Changed</h2>
+  <table id="vintageTable">
+    <thead>
+      <tr>
+        <th>No.</th>
+        <th>Old Code</th>
+        <th>New Code</th>
+        <th>Product Name</th>
+        <th>Status</th>
+        <th>Stock Quantity</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Valid -->
+  <h2>Valid Stock Quantity</h2>
+  <table id="validTable">
+    <thead>
+      <tr>
+        <th>No.</th>
+        <th>Product Code</th>
+        <th>Product Name</th>
+        <th>Status</th>
+        <th>Stock Quantity</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Loading Screen -->
+  <div id="loadingOverlay">
+    <div id="loadingText">Processing...</div>
+    <div class="progress-container"><div class="progress-bar" id="progressBar">0%</div></div>
+    <div id="timeLeft"></div>
+    <div id="fetchSummary" style="margin-top:8px; font-size:13px;"></div>
+  </div>
+
+  
+
+  <script>
+
+  let startTime = null;
+
+  function toggleThresholdInput() {
+    const chk = document.getElementById("toggleThreshold");
+    const input = document.getElementById("stockThresholdInput");
+    input.style.display = chk.checked ? "inline-block" : "none";
+  }
+
+  function getStockThreshold() {
+    const chk = document.getElementById("toggleThreshold");
+    if (chk.checked) {
+      const val = parseInt(document.getElementById("stockThresholdInput").value, 10);
+      return isNaN(val) ? 13 : val;
+    }
+    return 13; // default
+  }
+
+  function showLoading(){ document.getElementById("loadingOverlay").style.display="flex"; updateProgress(0,0,0,0); startTime=Date.now();}
+  function hideLoading(){ document.getElementById("loadingOverlay").style.display="none"; document.getElementById("timeLeft").innerText=""; document.getElementById("fetchSummary").innerText=""; }
+  function formatSeconds(s){ if(!isFinite(s)||s<=0)return"0s";let m=Math.floor(s/60);let sec=Math.round(s%60);return m>0?`${m}m ${sec}s`:`${sec}s`; }
+  function updateProgress(percent,done=0,total=0,errors=0){let bar=document.getElementById("progressBar");bar.style.width=percent+"%";bar.innerText=percent+"%";if(done>0&&total>0&&startTime){let elapsed=(Date.now()-startTime)/1000;let avgTime=elapsed/done;let remaining=avgTime*(total-done);document.getElementById("timeLeft").innerText=`Processed ${done}/${total} • ETA: ${formatSeconds(remaining)}`;document.getElementById("fetchSummary").innerText=`Errors: ${errors}`;}else{document.getElementById("timeLeft").innerText="";document.getElementById("fetchSummary").innerText="";}}
+
+  function clearInput(){document.getElementById("productList").value="";updateLineCount();}
+  async function clearCache(){localStorage.clear();sessionStorage.clear();window.resultsData={valid:[],invalid:[],vintage:[],happy:[]};["#validTable tbody","#invalidTable tbody","#vintageTable tbody","#happyTable tbody"].forEach(s=>{const el=document.querySelector(s);if(el)el.innerHTML="";});alert("Cache cleared!");}
+
+  function updateLineCount(){let raw=document.getElementById("productList").value;let lines=raw.split(/\r\n|\r|\n/).map(l=>l.trim()).filter(l=>l.length>0).length;document.getElementById("lineCount").innerText=lines;}
+  document.getElementById("productList").addEventListener("input",updateLineCount);
+
+  async function fetchStock(productId){
+    try{
+      let controller=new AbortController();
+      let id=setTimeout(()=>controller.abort(),15000);
+      let response=await fetch(`https://www.laithwaites.co.uk/api/product/item/${productId}`,{signal:controller.signal});
+      clearTimeout(id);
+      let data=await response.json();
+      if(data.response&&data.response.inventoryInfo){
+        return {
+          code:productId,
+          name:data.response.name,
+          status:data.response.inventoryInfo.summaryAvailabilityStatus,
+          stock:data.response.inventoryInfo.stockQty,
+          happyToWaitDate:data.response.inventoryInfo.happyToWaitDateAsString || ""
+        };
+      }else{
+        return {code:productId,name:"N/A",status:"Not Found",stock:"N/A",happyToWaitDate:""};
+      }
+    }catch(err){
+      const errName=(err&&err.name==="AbortError")?"Timeout":"Error";
+      return {code:productId,name:errName,status:errName,stock:"-",happyToWaitDate:""};
+    }
+  }
+
+  async function fetchAll(){
+    let raw=document.getElementById("productList").value;
+    let productCodes=raw.split(/\r\n|\r|\n/).map(l=>l.trim()).filter(c=>c.length>0);
+    if(productCodes.length===0){alert("Please enter product codes.");return;}
+    
+    // Save default codes on first run
+    if(!window.defaultProductCodes){
+      window.defaultProductCodes=[...productCodes];
+    }
+
+    showLoading();
+    const validBodyEl=document.querySelector("#validTable tbody");
+    const invalidBodyEl=document.querySelector("#invalidTable tbody");
+    const happyBodyEl=document.querySelector("#happyTable tbody");
+    const vintageBodyEl=document.querySelector("#vintageTable tbody");
+    if(validBodyEl)validBodyEl.innerHTML="";
+    if(invalidBodyEl)invalidBodyEl.innerHTML="";
+    if(happyBodyEl)happyBodyEl.innerHTML="";
+    if(vintageBodyEl)vintageBodyEl.innerHTML="";
+    let validResults=[],invalidResults=[],happyResults=[],errors=0;
+    const threshold=getStockThreshold();
+
+    for(let i=0;i<productCodes.length;i++){
+      const code=productCodes[i];
+      const result=await fetchStock(code);
+      const isError=(result.name==="Error"||result.name==="Timeout"||result.stock==="-");
+      if(isError)errors++;
+      const stockNum=parseInt(result.stock,10);
+
+      if(result.happyToWaitDate){ 
+        happyResults.push({oldCode:"",newCode:result.code,...result});
+        happyBodyEl.insertAdjacentHTML("beforeend",
+          `<tr><td>${happyResults.length}</td><td>-</td><td>${escapeHtml(result.code)}</td><td>${escapeHtml(result.name)}</td><td>${escapeHtml(result.status)}</td><td>${escapeHtml(result.stock)}</td><td>${escapeHtml(result.happyToWaitDate)}</td></tr>`);
+      }else if(!isNaN(stockNum)&&stockNum>threshold){
+        validResults.push(result);
+        validBodyEl.insertAdjacentHTML("beforeend",
+          `<tr><td>${validResults.length}</td><td>${escapeHtml(result.code)}</td><td>${escapeHtml(result.name)}</td><td>${escapeHtml(result.status)}</td><td>${escapeHtml(result.stock)}</td></tr>`);
+      }else{
+        invalidResults.push(result);
+        invalidBodyEl.insertAdjacentHTML("beforeend",
+          `<tr class="invalid"><td>${invalidResults.length}</td><td>${escapeHtml(result.code)}</td><td>${escapeHtml(result.name)}</td><td>${escapeHtml(result.status)}</td><td>${escapeHtml(result.stock)}</td></tr>`);
+      }
+      const percent=Math.round(((i+1)/productCodes.length)*100);
+      updateProgress(percent,i+1,productCodes.length,errors);
+    }
+    window.resultsData={valid:validResults,invalid:invalidResults,vintage:window.resultsData?window.resultsData.vintage||[]:[],happy:happyResults};
+    setTimeout(hideLoading,600);
+  }
+
+  // Restore Default for Invalid/Happy/Vintage
+  async function restoreDefault(){
+    if(!window.defaultProductCodes || window.defaultProductCodes.length===0){
+      alert("No default product codes stored yet!");
+      return;
+    }
+    document.getElementById("productList").value=window.defaultProductCodes.join("\n");
+    updateLineCount();
+
+    document.querySelector("#invalidTable tbody").innerHTML="";
+    document.querySelector("#happyTable tbody").innerHTML="";
+    document.querySelector("#vintageTable tbody").innerHTML="";
+
+    await fetchAll();
+  }
+
+  async function fixInvalidWithDigit(digit){
+    showLoading();
+    const invalidBodyEl=document.querySelector("#invalidTable tbody");
+    const vintageBodyEl=document.querySelector("#vintageTable tbody");
+    const happyBodyEl=document.querySelector("#happyTable tbody");
+    const rows=Array.from(invalidBodyEl.querySelectorAll("tr"));
+    let stillInvalid=[],changed=[],happyFound=[],errors=0;
+    invalidBodyEl.innerHTML="";
+    const threshold=getStockThreshold();
+
+    for(let i=0;i<rows.length;i++){
+      const oldCode=rows[i].cells[1].innerText.trim();
+      const newCode=(oldCode.length>=2)?oldCode.slice(0,-2)+String(digit):String(digit);
+
+      const result=await fetchStock(newCode);
+      const isError=(result.name==="Error"||result.name==="Timeout"||result.stock==="-");
+      if(isError)errors++;
+
+      const stockNum=parseInt(result.stock,10);
+
+      if(result.happyToWaitDate){
+        happyFound.push({oldCode,newCode,...result});
+        happyBodyEl.insertAdjacentHTML("beforeend",
+          `<tr class="valid-green"><td>${happyFound.length}</td><td>${escapeHtml(oldCode)}</td><td>${escapeHtml(newCode)}</td><td>${escapeHtml(result.name)}</td><td>${escapeHtml(result.status)}</td><td>${escapeHtml(result.stock)}</td><td>${escapeHtml(result.happyToWaitDate)}</td></tr>`);
+      }
+      else if(!isNaN(stockNum)&&stockNum>threshold){
+        changed.push({oldCode,newCode,...result});
+        vintageBodyEl.insertAdjacentHTML("beforeend",
+          `<tr class="valid-green"><td>${changed.length}</td><td>${escapeHtml(oldCode)}</td><td>${escapeHtml(newCode)}</td><td>${escapeHtml(result.name)}</td><td>${escapeHtml(result.status)}</td><td>${escapeHtml(result.stock)}</td></tr>`);
+      }else{
+        stillInvalid.push({...result,code:oldCode});
+      }
+
+      const percent=Math.round(((i+1)/rows.length)*100);
+      updateProgress(percent,i+1,rows.length,errors);
+    }
+
+    for(let i=0;i<stillInvalid.length;i++){
+      const r=stillInvalid[i];
+      invalidBodyEl.insertAdjacentHTML("beforeend",
+        `<tr class="invalid"><td>${i+1}</td><td>${escapeHtml(r.code)}</td><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.status)}</td><td>${escapeHtml(r.stock)}</td></tr>`);
+    }
+
+    window.resultsData=window.resultsData||{valid:[],invalid:[],vintage:[],happy:[]};
+    window.resultsData.vintage.push(...changed);
+    window.resultsData.happy.push(...happyFound);
+    window.resultsData.invalid=stillInvalid;
+    setTimeout(hideLoading,400);
+  }
+
+  function exportToExcel(){
+    if(!window.resultsData||(window.resultsData.valid.length===0&&window.resultsData.invalid.length===0&&window.resultsData.vintage.length===0&&window.resultsData.happy.length===0)){alert("No data to export!");return;}
+    let wb=XLSX.utils.book_new();
+    if(window.resultsData.invalid.length>0){let wsInvalid=XLSX.utils.json_to_sheet(window.resultsData.invalid);XLSX.utils.book_append_sheet(wb,wsInvalid,"Invalid Stock");}
+    if(window.resultsData.happy.length>0){let wsHappy=XLSX.utils.json_to_sheet(window.resultsData.happy);XLSX.utils.book_append_sheet(wb,wsHappy,"Happy to Wait");}
+    if(window.resultsData.vintage.length>0){let wsVintage=XLSX.utils.json_to_sheet(window.resultsData.vintage);XLSX.utils.book_append_sheet(wb,wsVintage,"Vintage Changed");}
+    if(window.resultsData.valid.length>0){let wsValid=XLSX.utils.json_to_sheet(window.resultsData.valid);XLSX.utils.book_append_sheet(wb,wsValid,"Valid Stock");}
+    XLSX.writeFile(wb,"stock_info.xlsx");
+  }
+
+  function escapeHtml(str){if(str===null||str===undefined)return"";return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
+  window.resultsData=window.resultsData||{valid:[],invalid:[],vintage:[],happy:[]};updateLineCount();
+  </script>
+  <script>
+ const themeSwitch = document.getElementById("themeSwitch");
+    function setTheme(mode) {
+      if (mode === "light") {
+        document.body.classList.add("light-mode");
+        themeSwitch.checked = true;
+      } else {
+        document.body.classList.remove("light-mode");
+        themeSwitch.checked = false;
+      }
+      localStorage.setItem("theme", mode);
+    }
+
+    themeSwitch.addEventListener("change", () => {
+      setTheme(themeSwitch.checked ? "light" : "dark");
+    });
+
+    // Load saved theme
+    (function() {
+      const saved = localStorage.getItem("theme") || "dark";
+      setTheme(saved);
+    })();
+</script>
+
+
+<style id="mh-meta-panels">
+.mh-meta-footer{max-width:1400px;margin:24px auto 8px;padding:16px 10px;border-top:1px solid rgba(148,163,184,.32);color:var(--muted,#94a3b8);text-align:center;font-family:inherit;font-size:13px;line-height:1.8;position:relative;z-index:5}
+.mh-meta-credit{color:var(--text,currentColor);font-weight:750}
+.mh-meta-links{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:9px}
+.mh-meta-sep{color:#94a3b8;opacity:.7}
+.mh-meta-action{appearance:none;border:0!important;background:transparent!important;color:var(--primary,var(--accent,#38bdf8))!important;padding:0!important;margin:0!important;font:inherit!important;font-weight:700!important;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.mh-meta-action:hover{filter:brightness(1.2)}
+.mh-meta-backdrop{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(2,6,23,.78)}
+.mh-meta-backdrop[hidden]{display:none!important}
+.mh-meta-dialog{width:min(100%,650px);max-height:min(82vh,760px);overflow:auto;padding:24px;border:1px solid #334155;border-radius:16px;background:#111827;color:#e5e7eb;box-shadow:0 24px 70px rgba(0,0,0,.48);font:14px/1.6 Inter,"Segoe UI",Arial,sans-serif}
+.mh-meta-dialog:focus{outline:none}
+.mh-meta-dialog-header{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:6px}
+.mh-meta-dialog h2{margin:0;color:#38bdf8;font-size:21px;line-height:1.3}
+.mh-meta-dialog h3{margin:0 0 6px;color:#e2e8f0;font-size:15px}
+.mh-meta-intro{margin:8px 0 16px;color:#cbd5e1;font-size:14px;line-height:1.65}
+.mh-meta-close{flex:0 0 auto;appearance:none;border:1px solid #475569!important;border-radius:9px!important;background:#1e293b!important;color:#f8fafc!important;padding:5px 10px!important;font-size:20px!important;line-height:1.2;cursor:pointer}
+.mh-meta-close:hover{background:#334155!important}
+.mh-meta-section{margin-top:13px;padding:15px 16px;border:1px solid #334155;border-left:3px solid #38bdf8;border-radius:10px;background:#0f172a}
+.mh-meta-section ul{margin:7px 0 0;padding-left:20px;color:#cbd5e1;line-height:1.7}
+.mh-meta-section li+li{margin-top:4px}
+.mh-meta-date{margin:3px 0 9px;color:#94a3b8;font-size:12px}
+@media(max-width:600px){.mh-meta-dialog{padding:18px}.mh-meta-footer{margin-top:18px}}
+
+body.mh-meta-modal-open{overflow:hidden}
+</style>
+<footer class="mh-meta-footer">
+  <div class="mh-meta-credit">Created by Mahendran</div>
+  <div class="mh-meta-links">
+    <button type="button" class="mh-meta-action" id="mhOpenInfo" aria-haspopup="dialog" aria-controls="mhInfoModal">Info</button>
+    <span class="mh-meta-sep" aria-hidden="true">|</span>
+    <span>Version 1.0</span>
+    <span class="mh-meta-sep" aria-hidden="true">|</span>
+    <button type="button" class="mh-meta-action" id="mhOpenPatch" aria-haspopup="dialog" aria-controls="mhPatchModal">Patch Notes</button>
+  </div>
+</footer>
+<div class="mh-meta-backdrop" id="mhInfoModal" hidden>
+  <section class="mh-meta-dialog" role="dialog" aria-modal="true" aria-labelledby="mhInfoTitle" aria-describedby="mhInfoIntro" tabindex="-1">
+    <div class="mh-meta-dialog-header"><h2 id="mhInfoTitle">Batch Stock Lookup — How to Use</h2><button type="button" class="mh-meta-close" data-mh-close aria-label="Close information">×</button></div>
+    <p class="mh-meta-intro" id="mhInfoIntro">Check multiple product codes in one run, review stock quantities and vintage changes, and export the results.</p>
+    <article class="mh-meta-section"><h3>Run a stock check</h3><ul><li>Paste product codes into the input box, one code per line.</li><li>Choose the required stock threshold or keep the default setting.</li><li>Select Fetch Stock Info to process the pasted product codes.</li></ul></article><article class="mh-meta-section"><h3>Review and export</h3><ul><li>Review the Valid Stock Quantity, Vintage Changed, Invalid / Remarks and other result sections.</li><li>Use the vintage filter options to review the relevant vintage results.</li><li>Use Clear Cache when you need to remove cached lookup data, and Export to Excel to save the results.</li></ul></article>
+  </section>
+</div>
+<div class="mh-meta-backdrop" id="mhPatchModal" hidden>
+  <section class="mh-meta-dialog" role="dialog" aria-modal="true" aria-labelledby="mhPatchTitle" aria-describedby="mhPatchIntro" tabindex="-1">
+    <div class="mh-meta-dialog-header"><h2 id="mhPatchTitle">Patch Notes &amp; History</h2><button type="button" class="mh-meta-close" data-mh-close aria-label="Close patch notes">×</button></div>
+    <p class="mh-meta-intro" id="mhPatchIntro">Version history and interface updates for Batch Stock Lookup — How to Use.</p>
+    <article class="mh-meta-section">
+      <h3>Version 1.0 — Tool information panel</h3>
+      <div class="mh-meta-date">19 November 2026</div>
+      <ul>
+        <li>Added the Created by Mahendran credit and a consistent version display.</li>
+        <li>Added this Info guide with instructions for the tool's existing features.</li>
+        <li>Added a clickable Patch Notes history panel.</li>
+        <li>Kept the existing tool workflow and functionality intact.</li>
+      </ul>
+    </article>
+  </section>
+</div>
+<script id="mh-meta-panel-script">
+(function () {
+  const infoModal = document.getElementById('mhInfoModal');
+  const patchModal = document.getElementById('mhPatchModal');
+  const openInfo = document.getElementById('mhOpenInfo');
+  const openPatch = document.getElementById('mhOpenPatch');
+  if (!infoModal || !patchModal || !openInfo || !openPatch) return;
+  let activeModal = null;
+  let previousFocus = null;
+  function openModal(modal) {
+    if (activeModal) closeModal(activeModal, false);
+    previousFocus = document.activeElement;
+    activeModal = modal;
+    modal.hidden = false;
+    document.body.classList.add('mh-meta-modal-open');
+    modal.querySelector('.mh-meta-dialog').focus();
+  }
+  function closeModal(modal, restoreFocus = true) {
+    modal.hidden = true;
+    activeModal = null;
+    document.body.classList.remove('mh-meta-modal-open');
+    if (restoreFocus && previousFocus && typeof previousFocus.focus === 'function') previousFocus.focus();
+  }
+  openInfo.addEventListener('click', () => openModal(infoModal));
+  openPatch.addEventListener('click', () => openModal(patchModal));
+  [infoModal, patchModal].forEach(modal => {
+    modal.addEventListener('click', event => {
+      if (event.target === modal || event.target.closest('[data-mh-close]')) closeModal(modal);
+    });
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && activeModal) closeModal(activeModal);
+  });
+})();
+</script>
+</body>
+</html>
