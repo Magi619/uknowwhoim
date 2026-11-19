@@ -249,15 +249,13 @@
     /* Dynamic vintage controls */
     .vintage-controls { display:flex; flex-direction:column; gap:9px; margin:8px 0 12px; }
     .vintage-controls-top, .vintage-manual { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+    #autoVintageBtn:disabled { opacity:.6; cursor:wait; }
     .vintage-range-label, .vintage-help { color:var(--muted); font-size:12px; }
-    .vintage-year-buttons { display:flex; flex-wrap:wrap; gap:5px; }
-    .vintage-year-buttons button { margin:2px; padding:7px 10px; }
     .vintage-manual label { color:var(--text); font-size:13px; font-weight:bold; }
     #manualVintageInput { width:145px; max-width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:5px; background:var(--panel); color:var(--text); font-size:14px; }
     #manualVintageInput:focus { outline:2px solid var(--accent); outline-offset:1px; }
     @media (max-width:600px) {
       .vintage-controls-top, .vintage-manual { align-items:flex-start; }
-      .vintage-year-buttons button { padding:7px 9px; font-size:12px; }
       .vintage-help { flex-basis:100%; }
     }
 </style>
@@ -392,14 +390,14 @@
   <div class="vintage-controls">
     <div class="vintage-controls-top">
       <button type="button" onclick="restoreDefault()" title="Restore the original product-code list and run the default stock check">Default Vintage</button>
-      <span id="vintageRangeLabel" class="vintage-range-label">Loading vintage range...</span>
+      <button type="button" id="autoVintageBtn" onclick="autoCheckVintage()" title="Automatically test the previous five years, current year and next five years">Auto Vintage Checker</button>
+      <span id="vintageRangeLabel" class="vintage-range-label">Auto range: loading...</span>
     </div>
-    <div id="vintageButtons" class="vintage-year-buttons" aria-label="Automatically generated vintage years"></div>
     <div class="vintage-manual">
       <label for="manualVintageInput">Manual Vintage</label>
       <input type="number" id="manualVintageInput" inputmode="numeric" min="0" max="2099" step="1" placeholder="e.g. 2026 or 26" aria-describedby="manualVintageHelp">
       <button type="button" onclick="checkManualVintage()">Check Vintage</button>
-      <span id="manualVintageHelp" class="vintage-help">Enter a 4-digit year or 2-digit vintage code.</span>
+      <span id="manualVintageHelp" class="vintage-help">Enter a 4-digit year or 1–2 digit vintage code.</span>
     </div>
   </div>
   <table id="invalidTable">
@@ -608,26 +606,126 @@
     return String(Number(raw)).padStart(2, "0");
   }
 
-  function renderVintageButtons() {
-    const container = document.getElementById("vintageButtons");
+  function getVintageYears() {
+    const currentYear = new Date().getFullYear();
+    const years = [currentYear];
+
+    // Try the current vintage first, then older vintages, then future vintages.
+    for (let offset = 1; offset <= 5; offset++) years.push(currentYear - offset);
+    for (let offset = 1; offset <= 5; offset++) years.push(currentYear + offset);
+
+    return years;
+  }
+
+  function updateVintageRangeLabel() {
     const rangeLabel = document.getElementById("vintageRangeLabel");
-    if (!container || !rangeLabel) return;
+    if (!rangeLabel) return;
 
     const currentYear = new Date().getFullYear();
-    const firstYear = currentYear - 5;
-    const lastYear = currentYear + 5;
-    rangeLabel.textContent = `Auto range: ${firstYear}–${lastYear}`;
-    container.replaceChildren();
+    rangeLabel.textContent = `Auto checks ${currentYear - 5}–${currentYear + 5} (11 years)`;
+  }
 
-    for (let year = firstYear; year <= lastYear; year++) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = `Vintage ${year}`;
-      button.title = `Check vintage ${year}`;
-      button.addEventListener("click", () => {
-        fixInvalidWithDigit(String(year % 100).padStart(2, "0"));
-      });
-      container.appendChild(button);
+  async function autoCheckVintage() {
+    const invalidBodyEl = document.querySelector("#invalidTable tbody");
+    const vintageBodyEl = document.querySelector("#vintageTable tbody");
+    const happyBodyEl = document.querySelector("#happyTable tbody");
+    const rows = Array.from(invalidBodyEl.querySelectorAll("tr"));
+
+    if (rows.length === 0) {
+      alert("There are no products in Invalid / Remarks Stock to check.");
+      return;
+    }
+
+    const button = document.getElementById("autoVintageBtn");
+    const years = getVintageYears();
+    const totalChecks = rows.length * years.length;
+    const threshold = getStockThreshold();
+    const stillInvalid = [];
+    const changed = [];
+    const happyFound = [];
+    let completedChecks = 0;
+    let errors = 0;
+
+    if (button) {
+      button.disabled = true;
+      button.textContent = "Checking vintages...";
+    }
+
+    showLoading();
+    invalidBodyEl.innerHTML = "";
+
+    try {
+      for (let i = 0; i < rows.length; i++) {
+        const oldCode = rows[i].cells[1].innerText.trim();
+        const originalRow = {
+          code: oldCode,
+          name: rows[i].cells[2].innerText.trim(),
+          status: rows[i].cells[3].innerText.trim(),
+          stock: rows[i].cells[4].innerText.trim()
+        };
+        let matched = false;
+
+        for (const year of years) {
+          const vintageSuffix = String(year % 100).padStart(2, "0");
+          const newCode = oldCode.length >= 2
+            ? oldCode.slice(0, -2) + vintageSuffix
+            : vintageSuffix;
+
+          const result = await fetchStock(newCode);
+          completedChecks++;
+
+          const isError = result.name === "Error" || result.name === "Timeout" || result.stock === "-";
+          if (isError) errors++;
+
+          const stockNum = parseInt(result.stock, 10);
+
+          if (result.happyToWaitDate) {
+            const found = {oldCode, newCode, vintageYear:year, ...result};
+            happyFound.push(found);
+            happyBodyEl.insertAdjacentHTML("beforeend",
+              `<tr class="valid-green"><td>${happyFound.length}</td><td>${escapeHtml(oldCode)}</td><td>${escapeHtml(newCode)}</td><td>${escapeHtml(result.name)}</td><td>${escapeHtml(result.status)}</td><td>${escapeHtml(result.stock)}</td><td>${escapeHtml(result.happyToWaitDate)}</td></tr>`);
+            matched = true;
+            break;
+          }
+
+          if (!isNaN(stockNum) && stockNum > threshold) {
+            const found = {oldCode, newCode, vintageYear:year, ...result};
+            changed.push(found);
+            vintageBodyEl.insertAdjacentHTML("beforeend",
+              `<tr class="valid-green"><td>${changed.length}</td><td>${escapeHtml(oldCode)}</td><td>${escapeHtml(newCode)}</td><td>${escapeHtml(result.name)}</td><td>${escapeHtml(result.status)}</td><td>${escapeHtml(result.stock)}</td></tr>`);
+            matched = true;
+            break;
+          }
+
+          const percent = Math.round((completedChecks / totalChecks) * 100);
+          updateProgress(percent, completedChecks, totalChecks, errors);
+        }
+
+        // Keep an item in Invalid / Remarks Stock only when no tested vintage worked.
+        if (!matched) {
+          stillInvalid.push(originalRow);
+          invalidBodyEl.insertAdjacentHTML("beforeend",
+            `<tr class="invalid"><td>${stillInvalid.length}</td><td>${escapeHtml(originalRow.code)}</td><td>${escapeHtml(originalRow.name)}</td><td>${escapeHtml(originalRow.status)}</td><td>${escapeHtml(originalRow.stock)}</td></tr>`);
+        }
+
+        const percent = Math.round((completedChecks / totalChecks) * 100);
+        updateProgress(percent, completedChecks, totalChecks, errors);
+      }
+
+      window.resultsData = window.resultsData || {valid:[], invalid:[], vintage:[], happy:[]};
+      window.resultsData.vintage.push(...changed);
+      window.resultsData.happy.push(...happyFound);
+      window.resultsData.invalid = stillInvalid;
+
+      const totalFound = changed.length + happyFound.length;
+      document.getElementById("fetchSummary").innerText =
+        `Auto Vintage Checker: ${totalFound} matched, ${stillInvalid.length} still invalid, ${errors} lookup errors.`;
+    } finally {
+      setTimeout(hideLoading, 500);
+      if (button) {
+        button.disabled = false;
+        button.textContent = "Auto Vintage Checker";
+      }
     }
   }
 
@@ -713,7 +811,7 @@
   function escapeHtml(str){if(str===null||str===undefined)return"";return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");}
   window.resultsData=window.resultsData||{valid:[],invalid:[],vintage:[],happy:[]};
   updateLineCount();
-  renderVintageButtons();
+  updateVintageRangeLabel();
   const manualVintageInput = document.getElementById("manualVintageInput");
   if (manualVintageInput) manualVintageInput.addEventListener("keydown", event => {
     if (event.key === "Enter") checkManualVintage();
@@ -774,7 +872,7 @@ body.mh-meta-modal-open{overflow:hidden}
   <div class="mh-meta-links">
     <button type="button" class="mh-meta-action" id="mhOpenInfo" aria-haspopup="dialog" aria-controls="mhInfoModal">Info</button>
     <span class="mh-meta-sep" aria-hidden="true">|</span>
-    <span>Version 1.1</span>
+    <span>Version 1.2</span>
     <span class="mh-meta-sep" aria-hidden="true">|</span>
     <button type="button" class="mh-meta-action" id="mhOpenPatch" aria-haspopup="dialog" aria-controls="mhPatchModal">Patch Notes</button>
   </div>
@@ -783,7 +881,7 @@ body.mh-meta-modal-open{overflow:hidden}
   <section class="mh-meta-dialog" role="dialog" aria-modal="true" aria-labelledby="mhInfoTitle" aria-describedby="mhInfoIntro" tabindex="-1">
     <div class="mh-meta-dialog-header"><h2 id="mhInfoTitle">Batch Stock Lookup — How to Use</h2><button type="button" class="mh-meta-close" data-mh-close aria-label="Close information">×</button></div>
     <p class="mh-meta-intro" id="mhInfoIntro">Check multiple product codes in one run, review stock quantities and vintage changes, and export the results. Vintage controls cover the current year, the previous five years and the next five years, with manual vintage entry also available.</p>
-    <article class="mh-meta-section"><h3>Run a stock check</h3><ul><li>Paste product codes into the input box, one code per line.</li><li>Choose the required stock threshold or keep the default setting.</li><li>Select Fetch Stock Info to process the pasted product codes.</li></ul></article><article class="mh-meta-section"><h3>Review and export</h3><ul><li>Review the Valid Stock Quantity, Vintage Changed, Invalid / Remarks and other result sections.</li><li>Use the automatically generated vintage buttons to check the current year, the previous five years and the next five years. The range updates automatically each calendar year.</li><li>To check another vintage, enter a four-digit year (for example 2026) or a two-digit vintage (for example 26) in Manual Vintage, then select Check Vintage. You can also press Enter.</li><li>Use Default Vintage to restore the original product-code list and run the standard stock check again.</li><li>Use Clear Cache when you need to remove cached lookup data, and Export to Excel to save the results.</li></ul></article>
+    <article class="mh-meta-section"><h3>Run a stock check</h3><ul><li>Paste product codes into the input box, one code per line.</li><li>Choose the required stock threshold or keep the default setting.</li><li>Select Fetch Stock Info to process the pasted product codes.</li></ul></article><article class="mh-meta-section"><h3>Review and export</h3><ul><li>Review the Valid Stock Quantity, Vintage Changed, Invalid / Remarks and other result sections.</li><li>Select Auto Vintage Checker once to test the current year, the previous five years and the next five years for every remaining invalid product. The tool stops checking an item when it finds a usable vintage.</li><li>To check another vintage, enter a four-digit year (for example 2026) or a two-digit vintage (for example 26) in Manual Vintage, then select Check Vintage. You can also press Enter.</li><li>Use Default Vintage to restore the original product-code list and run the standard stock check again.</li><li>Use Clear Cache when you need to remove cached lookup data, and Export to Excel to save the results.</li></ul></article>
   </section>
 </div>
 <div class="mh-meta-backdrop" id="mhPatchModal" hidden>
@@ -791,11 +889,11 @@ body.mh-meta-modal-open{overflow:hidden}
     <div class="mh-meta-dialog-header"><h2 id="mhPatchTitle">Patch Notes &amp; History</h2><button type="button" class="mh-meta-close" data-mh-close aria-label="Close patch notes">×</button></div>
     <p class="mh-meta-intro" id="mhPatchIntro">Version history and interface updates for Batch Stock Lookup — How to Use.</p>
     <article class="mh-meta-section">
-      <h3>Version 1.1 — Dynamic Vintage Checks</h3>
+      <h3>Version 1.2 — One-Click Auto Vintage Checker</h3>
       <div class="mh-meta-date">19 November 2026</div>
       <ul>
-        <li>Replaced the fixed Vintage 21–25 buttons with a rolling range covering five previous years through five future years.</li>
-        <li>Added manual vintage entry, accepting a four-digit year or a two-digit vintage suffix.</li>
+        <li>Replaced the individual year buttons with one Auto Vintage Checker button.</li><li>The checker tests the current year, five previous years and five future years for each remaining invalid product, stopping when it finds a usable vintage.</li>
+        <li>Added manual vintage entry, accepting a four-digit year or a one- or two-digit vintage suffix.</li>
         <li>Added Default Vintage to restore the original product-code list and rerun the default stock check.</li>
       </ul>
     </article>
