@@ -248,6 +248,8 @@ window.addEventListener('focus',()=>{if(!connected&&!userPaused)restoreApprovedD
 .mh-meta-section li+li{margin-top:4px}
 .mh-meta-date{margin:3px 0 9px;color:#94a3b8;font-size:12px}
 @media(max-width:600px){.mh-meta-dialog{padding:18px}.mh-meta-footer{margin-top:18px}}
+
+body.mh-meta-modal-open{overflow:hidden}
 </style>
 <footer class="mh-meta-footer"><div class="mh-meta-credit">Created by Mahendran</div><div class="mh-meta-links">
 <button type="button" class="mh-meta-action" id="mhOpenInfo" aria-haspopup="dialog" aria-controls="mhInfoModal">Info</button><span class="mh-meta-sep" aria-hidden="true">|</span><span>Version 1.0</span><span class="mh-meta-sep" aria-hidden="true">|</span><button type="button" class="mh-meta-action" id="mhOpenPatch" aria-haspopup="dialog" aria-controls="mhPatchModal">Patch Notes</button>
@@ -264,8 +266,8 @@ window.addEventListener('focus',()=>{if(!connected&&!userPaused)restoreApprovedD
  const openInfo=document.getElementById('mhOpenInfo'),openPatch=document.getElementById('mhOpenPatch');
  if(!info||!patch||!openInfo||!openPatch)return;
  let active=null,previous=null;
- function open(modal){if(active)close(active,false);previous=document.activeElement;active=modal;modal.hidden=false;modal.querySelector('.mh-meta-dialog').focus();}
- function close(modal,restore=true){modal.hidden=true;active=null;if(restore&&previous&&typeof previous.focus==='function')previous.focus();}
+ function open(modal){if(active)close(active,false);previous=document.activeElement;active=modal;modal.hidden=false;document.body.classList.add('mh-meta-modal-open');modal.querySelector('.mh-meta-dialog').focus();}
+ function close(modal,restore=true){modal.hidden=true;active=null;document.body.classList.remove('mh-meta-modal-open');if(restore&&previous&&typeof previous.focus==='function')previous.focus();}
  openInfo.addEventListener('click',()=>open(info));openPatch.addEventListener('click',()=>open(patch));
  [info,patch].forEach(modal=>modal.addEventListener('click',event=>{if(event.target===modal||event.target.closest('[data-mh-close]'))close(modal);}));
  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&active)close(active);});
