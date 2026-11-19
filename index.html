@@ -560,6 +560,9 @@
             transform: translateY(-1px);
         }
 
+        .open-button:disabled { opacity: .58; cursor: not-allowed; transform: none; }
+        .open-button:disabled:hover { background: var(--primary); transform: none; }
+
         /* =========================================================
            EMPTY STATE
         ========================================================= */
@@ -926,7 +929,7 @@ const tools = [
         status: "UTILITY",
         statusClass: "UTILITY",
         description:
-            "Event Ticke.",
+            "Create event ticket cards by entering the product URL, image, title, date, time, location and price. Preview the finished card and copy the ready-to-use HTML.",
         path: "tools/Event/index.html"
     },
 
@@ -938,7 +941,7 @@ const tools = [
         status: "UTILITY",
         statusClass: "utility",
         description:
-            "Mini HTML.",
+            "Format and edit HTML snippets with paragraph, bold, italic, underline and link controls. Preview the result, then copy the HTML with or without extra spaces.",
         path: "tools/Mini HTML/index.html"
     },
 
@@ -950,7 +953,7 @@ const tools = [
         status: "UTILITY",
         statusClass: "utility",
         description:
-            "Gift PDP page.",
+            "Generate Gift Page SOP content from a PDP code, product contents, delivery information and allergen details. Save and manage PDP entries, and import or export backups.",
         path: "tools/Gift PDP page/index.html"
     },
 
@@ -962,7 +965,7 @@ const tools = [
         status: "UTILITY",
         statusClass: "utility",
         description:
-            "VandingPage.",
+            "Create responsive landing-page content blocks with promotional copy, product images and pricing. Preview the layout, then copy or download the generated HTML.",
         path: "tools/VandingPage/index.html"
     },
 
@@ -974,7 +977,7 @@ const tools = [
         status: "UTILITY",
         statusClass: "utility",
         description:
-            "Akamai.",
+            "Generate Akamai image-cache clearing links for the UK, US or APAC market. Build a list of URLs, copy all links, and open Akamai from the tool.",
         path: "tools/Akamai/index.html"
     },
 
@@ -986,7 +989,7 @@ const tools = [
         status: "UTILITY",
         statusClass: "utility",
         description:
-            "Pageturner.",
+            "Upload one or more PDFs to extract and verify order codes, remove duplicates, and export the results for Laithwaites, Sunday Times or Averys.",
         path: "tools/Pageturner/index.html"
     },
 
@@ -998,7 +1001,7 @@ const tools = [
         status: "UTILITY",
         statusClass: "utility",
         description:
-            "Monthly AHD simplifies Excel/CSV reporting by counting Brand fields by category, calculating row and grand totals, and allowing quick copy or CSV export.",
+            "Turn an Excel or CSV report into a PivotTable-style monthly category summary. Map the worksheet and columns, calculate row and grand totals, then copy the table or download it as CSV.",
         path: "tools/monthly_ahd/index.html"
     },
 
@@ -1010,7 +1013,7 @@ const tools = [
         status: "UTILITY",
         statusClass: "utility",
         description:
-            "FrameTool.",
+            "Upload an image and create a solid-colour or directional gradient frame around it. Adjust the frame colours and gradient direction, then download the result as a PNG.",
         path: "tools/frametool/index.html"
     },
 
@@ -1022,7 +1025,7 @@ const tools = [
         status: "Beta",
         statusClass: "beta",
         description:
-            "Photoshop.",
+            "Edit and frame images on a custom-size canvas with layers, crop and zoom, brush and eraser tools, selections, gradients, blur, healing, image adjustments and PNG export.",
         path: "tools/Photoshop/index.html"
     },
 
@@ -1033,11 +1036,11 @@ const tools = [
         name: "Excel Tools",
         icon: "📈",
         category: "Data",
-        status: "UTILITY",
-        statusClass: "utility",
+        status: "COMING SOON",
+        statusClass: "testing",
         description:
             "Browser-based utilities for working with Excel-style data.",
-        path: "tools/excel-tools/index.html"
+        path: null
     },
 
     {
@@ -1048,7 +1051,7 @@ const tools = [
         status: "NEW",
         statusClass: "new",
         description:
-            "View Sony INZONE Buds left, right and case battery levels directly through the USB dongle.",
+            "Connect the Sony INZONE Buds USB dongle to view the left earbud, right earbud and charging-case battery levels. Refresh readings or disconnect the device.",
         path: "tools/inzone-buds/index.html"
     }
 ];
@@ -1241,46 +1244,24 @@ function createToolCard(tool) {
 
 
     /* Open tool */
-
-    const openButton =
-        card.querySelector(".open-button");
-
-    openButton.addEventListener(
-        "click",
-        () => {
-
+    const openButton = card.querySelector(".open-button");
+    if (tool.path) {
+        openButton.addEventListener("click", () => {
             addToRecent(tool.id);
-
-            window.location.href =
-                tool.path;
-
-        }
-    );
-
+            window.location.href = tool.path;
+        });
+    } else {
+        openButton.disabled = true;
+        openButton.textContent = "Coming Soon";
+        openButton.title = "This tool page has not been added yet.";
+    }
 
     /* Allow clicking card */
-
-    card.addEventListener(
-        "click",
-        event => {
-
-            if (
-                event.target.closest(
-                    ".favorite-button"
-                )
-            ) {
-                return;
-            }
-
-            addToRecent(tool.id);
-
-            window.location.href =
-                tool.path;
-
-        }
-    );
-
-
+    card.addEventListener("click", event => {
+        if (event.target.closest(".favorite-button") || !tool.path) return;
+        addToRecent(tool.id);
+        window.location.href = tool.path;
+    });
     return card;
 
 }
