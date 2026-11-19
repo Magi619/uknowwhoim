@@ -1771,6 +1771,98 @@ render();
 
 </script>
 
+
+<style id="mh-meta-panels">
+.mh-meta-footer{max-width:1400px;margin:24px auto 8px;padding:16px 10px;border-top:1px solid rgba(148,163,184,.32);color:var(--muted,#94a3b8);text-align:center;font:13px/1.8 inherit;position:relative;z-index:5}
+.mh-meta-credit{color:var(--text,currentColor);font-weight:750}
+.mh-meta-links{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:9px}
+.mh-meta-sep{color:#94a3b8;opacity:.7}
+.mh-meta-action{appearance:none;border:0!important;background:transparent!important;color:var(--primary,var(--accent,#38bdf8))!important;padding:0!important;margin:0!important;font:inherit!important;font-weight:700!important;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.mh-meta-action:hover{filter:brightness(1.2)}
+.mh-meta-backdrop{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(2,6,23,.78)}
+.mh-meta-backdrop[hidden]{display:none!important}
+.mh-meta-dialog{width:min(100%,650px);max-height:min(82vh,760px);overflow:auto;padding:24px;border:1px solid #334155;border-radius:16px;background:#111827;color:#e5e7eb;box-shadow:0 24px 70px rgba(0,0,0,.48);font:14px/1.6 Inter,"Segoe UI",Arial,sans-serif}
+.mh-meta-dialog:focus{outline:none}
+.mh-meta-dialog-header{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:6px}
+.mh-meta-dialog h2{margin:0;color:#38bdf8;font-size:21px;line-height:1.3}
+.mh-meta-dialog h3{margin:0 0 6px;color:#e2e8f0;font-size:15px}
+.mh-meta-intro{margin:8px 0 16px;color:#cbd5e1;font-size:14px;line-height:1.65}
+.mh-meta-close{flex:0 0 auto;appearance:none;border:1px solid #475569!important;border-radius:9px!important;background:#1e293b!important;color:#f8fafc!important;padding:5px 10px!important;font-size:20px!important;line-height:1.2;cursor:pointer}
+.mh-meta-close:hover{background:#334155!important}
+.mh-meta-section{margin-top:13px;padding:15px 16px;border:1px solid #334155;border-left:3px solid #38bdf8;border-radius:10px;background:#0f172a}
+.mh-meta-section ul{margin:7px 0 0;padding-left:20px;color:#cbd5e1;line-height:1.7}
+.mh-meta-section li+li{margin-top:4px}
+.mh-meta-date{margin:3px 0 9px;color:#94a3b8;font-size:12px}
+@media(max-width:600px){.mh-meta-dialog{padding:18px}.mh-meta-footer{margin-top:18px}}
+</style>
+<footer class="mh-meta-footer">
+  <div class="mh-meta-credit">Created by Mahendran</div>
+  <div class="mh-meta-links">
+    <button type="button" class="mh-meta-action" id="mhOpenInfo" aria-haspopup="dialog" aria-controls="mhInfoModal">Info</button>
+    <span class="mh-meta-sep" aria-hidden="true">|</span>
+    <span>Version 1.0</span>
+    <span class="mh-meta-sep" aria-hidden="true">|</span>
+    <button type="button" class="mh-meta-action" id="mhOpenPatch" aria-haspopup="dialog" aria-controls="mhPatchModal">Patch Notes</button>
+  </div>
+</footer>
+<div class="mh-meta-backdrop" id="mhInfoModal" hidden>
+  <section class="mh-meta-dialog" role="dialog" aria-modal="true" aria-labelledby="mhInfoTitle" aria-describedby="mhInfoIntro" tabindex="-1">
+    <div class="mh-meta-dialog-header"><h2 id="mhInfoTitle">My HTML Tools Dashboard</h2><button type="button" class="mh-meta-close" data-mh-close aria-label="Close information">×</button></div>
+    <p class="mh-meta-intro" id="mhInfoIntro">Your central dashboard for launching and organising the browser-based tools in this repository.</p>
+    <article class="mh-meta-section"><h3>Find a tool</h3><ul><li>Use the search box to filter tools by name, description, category or status.</li><li>Choose a category chip such as Work, PTTG, Data or Personal to narrow the list.</li></ul></article><article class="mh-meta-section"><h3>Organise your tools</h3><ul><li>Click the star on a card to add or remove it from Favorites. Favorites are saved in this browser.</li><li>Recently Used shows the last five tools you opened on this browser.</li></ul></article><article class="mh-meta-section"><h3>Personalise the dashboard</h3><ul><li>Use the moon/sun button in the top-right corner to switch between dark and light themes. Your theme choice is remembered.</li><li>Select Open Tool on a card to launch that tool. Items marked Coming Soon are not available yet.</li></ul></article>
+  </section>
+</div>
+<div class="mh-meta-backdrop" id="mhPatchModal" hidden>
+  <section class="mh-meta-dialog" role="dialog" aria-modal="true" aria-labelledby="mhPatchTitle" aria-describedby="mhPatchIntro" tabindex="-1">
+    <div class="mh-meta-dialog-header"><h2 id="mhPatchTitle">Patch Notes &amp; History</h2><button type="button" class="mh-meta-close" data-mh-close aria-label="Close patch notes">×</button></div>
+    <p class="mh-meta-intro" id="mhPatchIntro">Version history and interface updates for My HTML Tools Dashboard.</p>
+    <article class="mh-meta-section">
+      <h3>Version 1.0 — Tool information panel</h3>
+      <div class="mh-meta-date">19 November 2026</div>
+      <ul>
+        <li>Added the Created by Mahendran credit and a consistent version display.</li>
+        <li>Added this Info guide with instructions for the tool's existing features.</li>
+        <li>Added a clickable Patch Notes history panel.</li>
+        <li>Kept the existing tool workflow and functionality intact.</li>
+      </ul>
+    </article>
+  </section>
+</div>
+<script id="mh-meta-panel-script">
+(function () {
+  const infoModal = document.getElementById('mhInfoModal');
+  const patchModal = document.getElementById('mhPatchModal');
+  const openInfo = document.getElementById('mhOpenInfo');
+  const openPatch = document.getElementById('mhOpenPatch');
+  if (!infoModal || !patchModal || !openInfo || !openPatch) return;
+  let activeModal = null;
+  let previousFocus = null;
+  function openModal(modal) {
+    if (activeModal) closeModal(activeModal, false);
+    previousFocus = document.activeElement;
+    activeModal = modal;
+    modal.hidden = false;
+    document.body.classList.add('mh-meta-modal-open');
+    modal.querySelector('.mh-meta-dialog').focus();
+  }
+  function closeModal(modal, restoreFocus = true) {
+    modal.hidden = true;
+    activeModal = null;
+    document.body.classList.remove('mh-meta-modal-open');
+    if (restoreFocus && previousFocus && typeof previousFocus.focus === 'function') previousFocus.focus();
+  }
+  openInfo.addEventListener('click', () => openModal(infoModal));
+  openPatch.addEventListener('click', () => openModal(patchModal));
+  [infoModal, patchModal].forEach(modal => {
+    modal.addEventListener('click', event => {
+      if (event.target === modal || event.target.closest('[data-mh-close]')) closeModal(modal);
+    });
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && activeModal) closeModal(activeModal);
+  });
+})();
+</script>
 </body>
 </html>
 ```
