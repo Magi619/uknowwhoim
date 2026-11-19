@@ -453,9 +453,9 @@
     return index - 1;
   }
   function monthlyAhdDefaultMapping(headers, fallback) {
-    // Monthly AHD export defaults: AA = Labels, EM:EO = repeated Custom field (Brand) columns.
+    // Monthly AHD export defaults: AA = Labels, EZ/FA/FB = Custom field (Brand) columns.
     const label = columnIndexFromLetters('AA');
-    const values = ['EM', 'EN', 'EO'].map(columnIndexFromLetters);
+    const values = ['EZ', 'FA', 'FB'].map(columnIndexFromLetters);
     const headerAt = i => norm(headers[i] ?? '');
     const labelHeader = headerAt(label);
     const hasExpectedLabel = labelHeader === 'labels' || labelHeader === 'row labels';
