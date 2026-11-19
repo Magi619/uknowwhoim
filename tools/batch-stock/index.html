@@ -638,7 +638,6 @@
 
     const button = document.getElementById("autoVintageBtn");
     const years = getVintageYears();
-    const totalChecks = rows.length * years.length;
     const threshold = getStockThreshold();
     const stillInvalid = [];
     const changed = [];
@@ -672,7 +671,6 @@
             : vintageSuffix;
 
           const result = await fetchStock(newCode);
-          completedChecks++;
 
           const isError = result.name === "Error" || result.name === "Timeout" || result.stock === "-";
           if (isError) errors++;
@@ -697,8 +695,6 @@
             break;
           }
 
-          const percent = Math.round((completedChecks / totalChecks) * 100);
-          updateProgress(percent, completedChecks, totalChecks, errors);
         }
 
         // Keep an item in Invalid / Remarks Stock only when no tested vintage worked.
@@ -708,8 +704,8 @@
             `<tr class="invalid"><td>${stillInvalid.length}</td><td>${escapeHtml(originalRow.code)}</td><td>${escapeHtml(originalRow.name)}</td><td>${escapeHtml(originalRow.status)}</td><td>${escapeHtml(originalRow.stock)}</td></tr>`);
         }
 
-        const percent = Math.round((completedChecks / totalChecks) * 100);
-        updateProgress(percent, completedChecks, totalChecks, errors);
+        const percent = Math.round(((i + 1) / rows.length) * 100);
+        updateProgress(percent, i + 1, rows.length, errors);
       }
 
       window.resultsData = window.resultsData || {valid:[], invalid:[], vintage:[], happy:[]};
